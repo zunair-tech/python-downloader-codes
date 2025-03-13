@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download TikTok Videos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .input-box {
+            padding: 10px;
+            width: 50%;
+            border: 2px solid #69b9e2;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+        }
+        .download-btn {
+            padding: 10px 20px;
+            background-color: #69b9e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background-color: #5a9dc8;
+        }
+        .info-text {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .content {
+            margin: 20px auto;
+            width: 70%;
+            text-align: justify;
+        }
+        .video-preview {
+            margin-top: 20px;
+        }
+        .video-preview img {
+            width: 100%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+        /* Progress bar styles */
+        .progress-bar-container {
+            margin-top: 20px;
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f3f3f3;
+            border-radius: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #69b9e2;
+            border-radius: 10px;
+            width: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            /* Aligns items to the left */
+            padding: 10px 20px;
+            border-bottom: 1px solid #ccc;
+            
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-right: 20px;
+            margin-bottom: 10px;
+            /* Adds spacing between the logo and navigation */
+        }
+
+        .nav {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            /* Centers the navigation */
+            gap: 20px;
+        }
+
+
+        .nav a {
+            text-decoration: none;
+            color: #000;
+            font-weight: 500;
+        }
+
+          /* Loader style */
+          .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #88cc44;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo">
+        <nav class="nav">
+            <a href="/">YouTube</a>
+            <a href="/facebook">Facebook</a>
+            <a href="/instagram">Instagram</a>
+            <a href="/twitter">Twitter</a>
+            <a href="/tiktok">TikTok</a>
+            <!-- <a href="#">How to Install</a>  -->
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Download TikTok Videos</h1>
+        <input type="text" id="video_url" class="input-box" placeholder="Paste your TikTok video link here">
+        <button class="download-btn" id="download-btn">Download</button>
+        <div id="progress-container" style="display: none;">
+            <p>Progress: <span id="progress">0%</span></p>
+            <p>Speed: <span id="speed">0 KB/s</span></p>
+            <p>ETA: <span id="eta">N/A</span></p>
+        </div>
+
+        <div class="loader" id="loader" style="display: none;"></div>
+
+
+        <div class="video-preview">
+            <img id="video-thumbnail" src="" alt="Video Preview" style="width: 100%; max-width: 500px; display: none;">
+        </div>
+    <div class="container">
+        <!-- <a href="#"><img src="{{ url_for('static', filename='images/play-button.png') }}" alt="How to download?"> How to download?</a> -->
+        <a href="#">How to download?</a>
+   
+    </div>
+    <div class="content">
+        <p>With our TikTok video downloader, you can easily download your favorite TikTok videos in MP4 format. Paste the TikTok video link, and our tool will handle the rest.</p>
+        <p>Whether you're a creator or a fan, save your TikTok content quickly and effortlessly, and keep it for offline viewing!</p>
+    </div>
+    <div class="video-preview">
+        <img src="{{ url_for('static', filename='images/video-preview.jpg') }}" alt="Video Preview">
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+    </div>
+
+    <footer style="background-color: #ffffff; color: white; padding: 20px 0; text-align: center;">
+        <div>
+            <a href="https://www.facebook.com/your-profile" target="_blank" style="margin: 0 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 30px; height: 30px;">
+            </a>
+            <!-- <a href="https://twitter.com/your-profile" target="_blank" style="margin: 0 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/60/Twitter_Logo_As_of_2021.svg" alt="Twitter" style="width: 30px; height: 30px;">
+            </a> -->
+            <a href="https://www.instagram.com/your-profile" target="_blank" style="margin: 0 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" style="width: 30px; height: 30px;">
+            </a>
+            <a href="https://www.youtube.com/your-channel" target="_blank" style="margin: 0 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" alt="YouTube" style="width: 30px; height: 30px;">
+            </a>
+        </div>
+        <p style="margin-top: 20px; font-size: 14px;">&copy; 2025 Your Website Name. All rights reserved.</p>
+    </footer>
+
+    
+
+   <script>
+    // Fetch TikTok video info on input change
+    $('#video_url').on('input', function() {
+        let url = $(this).val().trim();
+        if (url === "") {
+            $('#video-thumbnail').hide();
+            $('.loader').hide();
+            return;
+        }
+
+        // AJAX call to fetch TikTok video details
+        $.ajax({
+            url: '/get-tiktok-info', // Backend endpoint for TikTok
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "url": url }),
+            beforeSend: function() {
+                $('.loader').show();
+            },
+            success: function(response) {
+                $('.loader').hide();
+
+                if (response.error) {
+                    Swal.fire('Error', response.error, 'error');
+                    $('#video-thumbnail').hide();
+                    return;
+                }
+
+                // Show thumbnail if available
+                if (response.thumbnail_url) {
+                    $('#video-thumbnail').attr('src', response.thumbnail_url).show();
+                } else {
+                    $('#video-thumbnail').hide();
+                }
+            },
+            error: function() {
+                $('.loader').hide();
+                Swal.fire('Error', 'Failed to fetch video details. Try again!', 'error');
+                $('#video-thumbnail').hide();
+            }
+        });
+    });
+
+    // Handle TikTok video download
+    $('#download-btn').on('click', function() {
+        let url = $('#video_url').val().trim();
+        if (url === "") {
+            Swal.fire('Error', 'Please provide a TikTok video URL.', 'error');
+            return;
+        }
+
+        $('#progress-container').show();
+        $('#progress').text('0%');
+        $('#speed').text('0 KB/s');
+        $('#eta').text('N/A');
+
+        // AJAX request to download TikTok video
+        $.ajax({
+            url: '/download-tiktok', // Backend endpoint
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "url": url, "remove_watermark": true }), // No watermark
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire('Success', 'Download started!', 'success');
+                    window.location.href = response.download_url;
+                } else {
+                    Swal.fire('Error', response.error, 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error', 'Failed to download video.', 'error');
+            }
+        });
+
+        // Listen for progress updates
+        let source = new EventSource('/progress-tiktok');
+        source.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            $('#progress').text(data.progress);
+            $('#speed').text(data.speed);
+            $('#eta').text(data.eta);
+
+            if (data.status === "Download Complete") {
+                source.close();
+            }
+        };
+    });
+</script>
+
+</body>
+
+</html>
