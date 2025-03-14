@@ -11,7 +11,7 @@ app = Flask(__name__, template_folder="templates")
 
 # Get the default Downloads folder for the current user
 if os.name == 'nt':  # Windows OS
-    DOWNLOAD_FOLDER = str(Path(os.getenv('USERPROFILE')) / 'Downloads')
+    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingly
     DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 # Make sure the folder exists (Windows downloads folder should already exist)
@@ -96,7 +96,9 @@ def download_video():
 
     ydl_opts = {
         "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
-        "progress_hooks": [progress_hook]
+        "progress_hooks": [progress_hook],
+        "cookiefile": "/root/cookies.txt",
+        "verbose": True
     }
 
     try:
@@ -143,7 +145,10 @@ def get_video_info():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        ydl_opts = {"quiet": True}
+        ydl_opts = {
+            "quiet": True,
+            "cookiefile": "/root/cookies.txt"
+        }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             thumbnail_url = info.get("thumbnail", "")
