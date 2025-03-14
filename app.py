@@ -242,7 +242,8 @@ def download_video():
     ydl_opts = {
         "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
         "progress_hooks": [progress_hook],
-        "cookiefile": "/root/cookies.txt"  # 🔹 Uses Chrome cookies (change to 'firefox' if needed)
+        "cookiefile": "/root/cookies.txt",
+        "verbose": True
     }
 
     try:
@@ -290,7 +291,8 @@ def get_video_info():
     try:
         ydl_opts = {
             "quiet": True,
-            "cookies_from_browser": ("chrome",)  # 🔹 Ensures authentication works
+            "cookies_from_browser": ("chrome",),
+            "verbose": True
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
