@@ -11,14 +11,21 @@
             margin: 0;
             padding: 0;
             background-color: #fff;
+            min-height: 100vh; /* Ensures the body takes full viewport height */
+            display: flex;
+            flex-direction: column; /* Allows footer to be pushed to the bottom */
         }
+
         .container {
             margin-top: 50px;
+            flex: 1; /* This allows the container to take up the available space */
         }
+
         h1 {
             font-size: 24px;
             font-weight: bold;
         }
+
         .input-box {
             padding: 10px;
             width: 50%;
@@ -27,6 +34,7 @@
             font-size: 16px;
             outline: none;
         }
+
         .download-btn {
             padding: 10px 20px;
             background-color: #88cc44;
@@ -36,77 +44,61 @@
             font-size: 16px;
             cursor: pointer;
         }
+
         .download-btn:hover {
             background-color: #76b037;
         }
-        .info-text {
-            font-size: 14px;
-            margin-top: 10px;
-        }
-        .norton-badge {
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .content {
-            margin: 20px auto;
-            width: 70%;
-            text-align: justify;
-        }
-        .video-preview {
-            margin-top: 20px;
-        }
-        .video-preview img {
-            width: 100%;
-            max-width: 500px;
-            border-radius: 5px;
-        }
-        /* Progress bar styles */
-        .progress-bar-container {
-            margin-top: 20px;
-            width: 50%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background-color: #f3f3f3;
-            border-radius: 10px;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #88cc44;
-            border-radius: 10px;
-            width: 0;
+
+        .footer {
+            background-color: #ffffff;
+            color: #000;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid #ccc;
         }
 
+        .footer a {
+            text-decoration: none;
+            font-size: 16px;
+            color: #007bff;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer .social-icons a {
+            margin: 0 15px;
+            font-size: 18px;
+            color: #007bff;
+        }
+
+        .footer .social-icons a:hover {
+            color: #88cc44;
+        }
+
+        /* Styling for the header */
         .header {
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            /* Aligns items to the left */
             padding: 10px 20px;
             border-bottom: 1px solid #ccc;
-            
         }
 
         .logo {
-            width: 120px;
-            height: auto;
+            font-size: 24px;
+            font-weight: bold;
+            color: #88cc44;
             margin-right: 20px;
-            margin-bottom: 10px;
-            /* Adds spacing between the logo and navigation */
         }
 
         .nav {
             flex: 1;
             display: flex;
             justify-content: center;
-            /* Centers the navigation */
             gap: 20px;
         }
-
 
         .nav a {
             text-decoration: none;
@@ -114,17 +106,8 @@
             font-weight: 500;
         }
 
-        .quality-select {
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #88cc44;
-            border-radius: 5px;
-            width: 50%;
-        }
-
-          /* Loader style */
-          .loader {
+         /* Loader style */
+         .loader {
             border: 8px solid #f3f3f3;
             border-top: 8px solid #88cc44;
             border-radius: 50%;
@@ -150,9 +133,10 @@ i {
   margin-right: 5px; /* Adds spacing between icon and text */
 }
 
-
-
+        /* Add any other styles that are necessary for the page content */
     </style>
+
+
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.css">
       <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.js"></script>
@@ -162,7 +146,7 @@ i {
 </head>
 <body>
     <header class="header">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo">
+        <div class="logo">Downloader</div>
         <nav class="nav">
             <a href="/">YouTube</a>
             <a href="/facebook">Facebook</a>
@@ -203,6 +187,8 @@ i {
         
         <a href="#"><i class="fa-solid fa-play"></i> How to download?</a>
     </div>
+
+    
     <div class="content">
         <p>Transform how you collect YOutube videos with the exceptional "SaveFrom Helper" browser extension. This robust and cost-free tool empowers you to capture your cherished Youtube content in MP4 format, ensuring premium quality downloads directly to your device.</p>
         <p>Enhance your YouTube experience with our streamlined video downloading companion. As you browse through your feed, save compelling videos with just a few clicks - it's remarkably fast and easy.</p>
@@ -218,7 +204,7 @@ i {
         </div>
     </div>
 
-    <footer style="background-color: #ffffff; color: white; padding: 20px 0; text-align: center;">
+    <footer class="footer" style="background-color: #ffffff; color: white; padding: 20px 0; text-align: center;">
         <div>
             <a href="https://www.facebook.com/your-profile" target="_blank" style="margin: 0 15px;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 30px; height: 30px;">

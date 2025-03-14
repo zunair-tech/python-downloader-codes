@@ -3,10 +3,20 @@ import yt_dlp
 import json
 import time
 import os
+from pathlib import Path
 
 app = Flask(__name__, template_folder="templates")
-DOWNLOAD_FOLDER = "downloads"
+# DOWNLOAD_FOLDER = "downloads"
+# os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+# Get the default Downloads folder for the current user
+if os.name == 'nt':  # Windows OS
+    DOWNLOAD_FOLDER = str(Path(os.getenv('USERPROFILE')) / 'Downloads')
+else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingly
+    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
+# Make sure the folder exists (Windows downloads folder should already exist)
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
 
 download_progress = {"progress": "0%", "speed": "0 KB/s", "eta": "N/A", "status": "Waiting"}
 
