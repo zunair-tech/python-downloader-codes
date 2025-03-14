@@ -242,7 +242,7 @@ def download_video():
     ydl_opts = {
         "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
         "progress_hooks": [progress_hook],
-        "cookies_from_browser": ("chrome",)  # 🔹 Uses Chrome cookies (change to 'firefox' if needed)
+        "cookiefile": "/root/cookies.txt"  # 🔹 Uses Chrome cookies (change to 'firefox' if needed)
     }
 
     try:
