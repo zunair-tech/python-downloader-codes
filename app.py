@@ -136,6 +136,37 @@ def download_video():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# @app.route('/get-video-info', methods=['POST'])
+# def get_video_info():
+#     data = request.get_json()
+#     video_url = data.get("url")
+
+#     if not video_url:
+#         return jsonify({"error": "No URL provided"}), 400
+
+#     try:
+#         ydl_opts = {
+#             "quiet": True,
+#             "cookiefile": "/root/cookies.txt"
+#         }
+#         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+#             info = ydl.extract_info(video_url, download=False)
+#             thumbnail_url = info.get("thumbnail", "")
+#             formats = info.get("formats", [])
+            
+#             # Extract available video quality options
+#             quality_options = []
+#             for f in formats:
+#                 if f.get("vcodec") != "none":  # Ignore audio-only formats
+#                     quality_options.append(f"{f.get('height')}p")
+
+#             return jsonify({
+#                 "thumbnail_url": thumbnail_url,
+#                 "qualities": list(set(quality_options))  # Remove duplicates
+#             })
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
 @app.route('/get-video-info', methods=['POST'])
 def get_video_info():
     data = request.get_json()
@@ -144,28 +175,34 @@ def get_video_info():
     if not video_url:
         return jsonify({"error": "No URL provided"}), 400
 
+    # 🔹 Validate and clean the URL before passing to yt-dlp
+    video_url = video_url.strip()  # Remove leading/trailing spaces
+
+    if not video_url.startswith("http"):
+        return jsonify({"error": "Invalid URL format"}), 400
+
     try:
         ydl_opts = {
             "quiet": True,
-            "cookiefile": "/root/cookies.txt"
+            "cookies_from_browser": ("chrome",)  # Ensure authentication works
         }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             thumbnail_url = info.get("thumbnail", "")
             formats = info.get("formats", [])
-            
-            # Extract available video quality options
-            quality_options = []
-            for f in formats:
-                if f.get("vcodec") != "none":  # Ignore audio-only formats
-                    quality_options.append(f"{f.get('height')}p")
+
+            quality_options = [
+                f"{f.get('height')}p" for f in formats if f.get("vcodec") != "none"
+            ]
 
             return jsonify({
                 "thumbnail_url": thumbnail_url,
-                "qualities": list(set(quality_options))  # Remove duplicates
+                "qualities": list(set(quality_options))
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
     
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
