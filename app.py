@@ -176,12 +176,7 @@ from pathlib import Path
 app = Flask(__name__, template_folder="templates")
 
 # Get the default Downloads folder for the current user
-if os.name == 'nt':  # Windows OS
-    DOWNLOAD_FOLDER = str(Path(os.getenv('USERPROFILE')) / 'Downloads')
-else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingly
-    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
-
-# Make sure the folder exists (Windows downloads folder should already exist)
+DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 download_progress = {"progress": "0%", "speed": "0 KB/s", "eta": "N/A", "status": "Waiting"}
@@ -222,7 +217,7 @@ def progress():
     """Streams live download progress."""
     def event_stream():
         while True:
-            time.sleep(1)  # Update every second
+            time.sleep(1)
             yield f"data: {json.dumps(download_progress)}\n\n"
 
     return Response(event_stream(), mimetype="text/event-stream")
@@ -243,16 +238,17 @@ def download_video():
         "eta": "N/A"
     })
 
+    # ✅ Modify yt-dlp options to include cookies from browser
     ydl_opts = {
-        "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",  # Save to the browser's download folder
-        "progress_hooks": [progress_hook]
+        "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
+        "progress_hooks": [progress_hook],
+        "cookies_from_browser": ("chrome",)  # 🔹 Uses Chrome cookies (change to 'firefox' if needed)
     }
 
     try:
-        with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             available_formats = {fmt["height"] for fmt in info.get("formats", []) if fmt.get("height")}
-            # Get the video thumbnail URL
             thumbnail_url = info.get("thumbnail", None)
 
         format_map = {
@@ -292,24 +288,27 @@ def get_video_info():
         return jsonify({"error": "No URL provided"}), 400
 
     try:
-        ydl_opts = {"quiet": True}
+        ydl_opts = {
+            "quiet": True,
+            "cookies_from_browser": ("chrome",)  # 🔹 Ensures authentication works
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             thumbnail_url = info.get("thumbnail", "")
             formats = info.get("formats", [])
-            
-            # Extract available video quality options
+
             quality_options = []
             for f in formats:
-                if f.get("vcodec") != "none":  # Ignore audio-only formats
+                if f.get("vcodec") != "none":
                     quality_options.append(f"{f.get('height')}p")
 
             return jsonify({
                 "thumbnail_url": thumbnail_url,
-                "qualities": list(set(quality_options))  # Remove duplicates
+                "qualities": list(set(quality_options))
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
