@@ -184,6 +184,8 @@ def get_video_info():
     try:
         ydl_opts = {
             "quiet": True,
+            "format": "bestaudio/best",
+            "noplaylist": True,
             "cookies_from_browser": ("chrome",)  # Ensure authentication works
         }
 
