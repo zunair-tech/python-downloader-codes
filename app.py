@@ -11,7 +11,7 @@ app = Flask(__name__, template_folder="templates")
 
 # Get the default Downloads folder for the current user
 if os.name == 'nt':  # Windows OS
-    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
+    DOWNLOAD_FOLDER = "C:\\Downloads"
 else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingly
     DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 # Make sure the folder exists (Windows downloads folder should already exist)
@@ -95,7 +95,7 @@ def download_video():
     })
 
     ydl_opts = {
-        "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
+        "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
         "cookiefile": "/root/cookies.txt",
         "verbose": True
