@@ -290,7 +290,7 @@ def get_video_info():
     try:
         ydl_opts = {
             "quiet": True,
-            "cookies_from_browser": ("chrome",)  # 🔹 Ensures authentication works
+            "cookiefile": "/root/cookies.txt"  # 🔹 Ensures authentication works
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
