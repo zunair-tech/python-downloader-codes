@@ -175,23 +175,17 @@
 # if __name__ == "__main__":
 #     app.run(debug=True, threaded=True)
 
-
 from flask import Flask, request, jsonify, render_template, Response, send_file
 import yt_dlp
 import json
 import time
 import os
 from pathlib import Path
-from werkzeug.utils import safe_join
 
 app = Flask(__name__, template_folder="templates")
 
-# Get the default Downloads folder
-if os.name == 'nt':  # Windows
-    DOWNLOAD_FOLDER = str(Path(os.getenv('USERPROFILE')) / 'Downloads')
-else:  # Linux/macOS
-    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
-
+# Set a folder on the server to store downloads
+DOWNLOAD_FOLDER = "/tmp/downloads"  # Store files temporarily on Ubuntu
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 download_progress = {"progress": "0%", "speed": "0 KB/s", "eta": "N/A", "status": "Waiting"}
@@ -221,7 +215,6 @@ def progress_hook(d):
             "eta": "0s"
         })
 
-
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -236,20 +229,10 @@ def progress():
 
     return Response(event_stream(), mimetype="text/event-stream")
 
-
-@app.route('/download-file/<filename>')
-def download_file(filename):
-    file_path = safe_join(DOWNLOAD_FOLDER, filename)
-    if not os.path.exists(file_path):
-        return jsonify({"error": "File not found"}), 404
-    return send_file(file_path, as_attachment=True)
-
-
 @app.route("/download", methods=["POST"])
 def download_video():
     data = request.json
     url = data.get("url")
-    format_option = data.get("format", "video")
 
     if not url:
         return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
@@ -261,57 +244,33 @@ def download_video():
         "eta": "N/A"
     })
 
-    # Set format based on user choice
     ydl_opts = {
         "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
-        "quiet": True
+        "quiet": False  # Remove "quiet" to debug properly
     }
-
-    if format_option == "audio":
-        ydl_opts["format"] = "bestaudio"
-    else:
-        ydl_opts["format"] = "bestvideo+bestaudio/best"
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
+
+            # Ensure filename extraction is correct
             filename = info.get("requested_downloads", [{}])[0].get("filename", None)
 
-        if filename:
-            file_path = os.path.abspath(filename)  # Ensure it's an absolute path
-            return send_file(file_path, as_attachment=True, mimetype="video/mp4")
+            if not filename:
+                filename = f"{info.get('title', 'video')}.mp4"
 
-        return jsonify({"success": False, "error": "Download failed"}), 500
+            file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+            print(f"File downloaded to: {file_path}")  # Debug print
+
+            if os.path.exists(file_path):
+                return send_file(file_path, as_attachment=True, download_name=filename, mimetype="video/mp4")
+            else:
+                return jsonify({"success": False, "error": "File not found"}), 500
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
-@app.route('/get-video-info', methods=['POST'])
-def get_video_info():
-    data = request.get_json()
-    video_url = data.get("url")
-
-    if not video_url:
-        return jsonify({"error": "No URL provided"}), 400
-
-    try:
-        ydl_opts = {"quiet": True}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=False)
-            thumbnail_url = info.get("thumbnail", "")
-            formats = info.get("formats", [])
-
-            quality_options = {f"{f.get('height')}p" for f in formats if f.get("vcodec") != "none"}
-
-            return jsonify({
-                "thumbnail_url": thumbnail_url,
-                "qualities": sorted(list(quality_options), reverse=True)  # Sort qualities in descending order
-            })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 if __name__ == "__main__":
+    print(f"Download Folder: {DOWNLOAD_FOLDER}")  # Debug print
     app.run(debug=True, threaded=True)
