@@ -142,7 +142,7 @@ def download_video():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@app.route('/get-video-info', methods=['POST'])
+@app.route("/get-video-info", methods=["POST"])
 def get_video_info():
     data = request.get_json()
     video_url = data.get("url")
@@ -157,15 +157,21 @@ def get_video_info():
             thumbnail_url = info.get("thumbnail", "")
             formats = info.get("formats", [])
             
-            # Extract available video quality options
+            # Extract available video quality options and direct download links
             quality_options = []
+            download_links = []
             for f in formats:
                 if f.get("vcodec") != "none":  # Ignore audio-only formats
                     quality_options.append(f"{f.get('height')}p")
+                    download_links.append({
+                        "quality": f"{f.get('height')}p",
+                        "url": f.get("url")
+                    })
 
             return jsonify({
                 "thumbnail_url": thumbnail_url,
-                "qualities": list(set(quality_options))  # Remove duplicates
+                "qualities": list(set(quality_options)),  # Remove duplicates
+                "download_links": download_links
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
