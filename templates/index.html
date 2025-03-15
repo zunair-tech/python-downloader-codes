@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -154,7 +154,7 @@ i {
             <a href="/twitter">Twitter</a>
             <a href="/tiktok">TikTok</a>
             <!-- <a href="#">How to Install</a>  -->
-        <!-- </nav>
+        </nav>
     </header>
 
     <div class="container">
@@ -178,41 +178,41 @@ i {
         </div>
         
         <!-- Dynamic Quality Selection -->
-        <!-- <select id="quality-select" class="quality-select" style="display: none;">
+        <select id="quality-select" class="quality-select" style="display: none;">
             <option value="">Select Video Quality</option>
         </select>
     </div>
     <div class="container">
         <!-- <a href="#"><img src="{{ url_for('static', filename='images/play-button.png') }}" alt="How to download?"> How to download?</a> -->
         
-        <!-- <a href="#"><i class="fa-solid fa-play"></i> How to download?</a> -->
-    <!-- </div> --> -->
+        <a href="#"><i class="fa-solid fa-play"></i> How to download?</a>
+    </div>
 
-<!--     
+    
     <div class="content">
         <p>Transform how you collect YOutube videos with the exceptional "SaveFrom Helper" browser extension. This robust and cost-free tool empowers you to capture your cherished Youtube content in MP4 format, ensuring premium quality downloads directly to your device.</p>
         <p>Enhance your YouTube experience with our streamlined video downloading companion. As you browse through your feed, save compelling videos with just a few clicks - it's remarkably fast and easy.</p>
     </div>
     <div class="video-preview">
         <img src="{{ url_for('static', filename='images/video-preview.jpg') }}" alt="Video Preview">
-    </div> -->
+    </div>
 
     <!-- Progress Bar -->
-    <!-- <div class="progress-bar-container">
+    <div class="progress-bar-container">
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
-    </div> -->
+    </div>
 
-    <!-- <footer class="footer" style="background-color: #ffffff; color: white; padding: 20px 0; text-align: center;">
+    <footer class="footer" style="background-color: #ffffff; color: white; padding: 20px 0; text-align: center;">
         <div>
             <a href="https://www.facebook.com/your-profile" target="_blank" style="margin: 0 15px;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" style="width: 30px; height: 30px;">
-            </a> -->
+            </a>
             <!-- <a href="https://twitter.com/your-profile" target="_blank" style="margin: 0 15px;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/6/60/Twitter_Logo_As_of_2021.svg" alt="Twitter" style="width: 30px; height: 30px;">
             </a> -->
-            <!-- <a href="https://www.instagram.com/your-profile" target="_blank" style="margin: 0 15px;">
+            <a href="https://www.instagram.com/your-profile" target="_blank" style="margin: 0 15px;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" style="width: 30px; height: 30px;">
             </a>
             <a href="https://www.youtube.com/your-channel" target="_blank" style="margin: 0 15px;">
@@ -220,11 +220,11 @@ i {
             </a>
         </div>
         <p style="margin-top: 20px; font-size: 14px;">&copy; 2025 Your Website Name. All rights reserved.</p>
-    </footer> -->
-     -->
+    </footer>
+    
     
   
-    <!-- <script>
+    <script>
         // Fetch video info on paste/input and display thumbnail and quality options
         $('#video_url').on('input', function() {
             let url = $(this).val();
@@ -306,47 +306,22 @@ i {
                 error: function() {
                     Swal.fire('Error', 'An error occurred while downloading the video.', 'error');
                 }
-            }); -->
+            });
 
-            <!-- // Open event source for progress updates
-//             let source = new EventSource('/progress');
-//             source.onmessage = function(event) {
-//                 let data = JSON.parse(event.data);
-//                 $('#progress').text(data.progress);
-//                 $('#speed').text(data.speed);
-//                 $('#eta').text(data.eta);
+            // Open event source for progress updates
+            let source = new EventSource('/progress');
+            source.onmessage = function(event) {
+                let data = JSON.parse(event.data);
+                $('#progress').text(data.progress);
+                $('#speed').text(data.speed);
+                $('#eta').text(data.eta);
 
-//                 // If download is complete, stop progress updates
-//                 if (data.status === "Download Complete") {
-//                     source.close();
-//                 }
-//             };
-//         });
-//     </script>
-// </body>
-// </html> --> -->
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Video Downloader</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="text-center">YouTube Video Downloader</h2>
-        <form action="/" method="post" class="mt-4">
-            <div class="mb-3">
-                <label for="youtube_url" class="form-label">Enter YouTube Video URL:</label>
-                <input type="text" class="form-control" id="youtube_url" name="youtube_url" placeholder="Paste the video URL here" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Download</button>
-        </form>
-    </div>
+                // If download is complete, stop progress updates
+                if (data.status === "Download Complete") {
+                    source.close();
+                }
+            };
+        });
+    </script>
 </body>
 </html>
-
