@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response, send_file, send_from_directory
+from flask import Flask, request, jsonify, render_template, url_for, redirect, session, Response
 import yt_dlp
 import json
 import time
@@ -6,16 +6,17 @@ import os
 from pathlib import Path
 
 app = Flask(__name__, template_folder="templates")
-
-YOUTUBE_API_KEY = "your_secret_key_1284732472"
+# DOWNLOAD_FOLDER = "downloads"
+# os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 # Get the default Downloads folder for the current user
 if os.name == 'nt':  # Windows OS
-    DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
+    DOWNLOAD_FOLDER = str(Path(os.getenv('USERPROFILE')) / 'Downloads')
 else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingly
     DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 # Make sure the folder exists (Windows downloads folder should already exist)
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
 
 download_progress = {"progress": "0%", "speed": "0 KB/s", "eta": "N/A", "status": "Waiting"}
 
@@ -66,6 +67,7 @@ def twitter():
 def tiktok():
     return render_template("tiktok.html")
 
+
 @app.route("/progress")
 def progress():
     """Streams live download progress."""
@@ -93,10 +95,8 @@ def download_video():
     })
 
     ydl_opts = {
-        "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-        "progress_hooks": [progress_hook],
-        "cookiefile": "/root/cookies.txt",
-        "verbose": True
+        "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
+        "progress_hooks": [progress_hook]
     }
 
     try:
@@ -128,25 +128,11 @@ def download_video():
             info_dict = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info_dict)
 
-        # Return the filename for the client to download
-        return jsonify({"success": True, "filename": os.path.basename(filename), "thumbnail_url": thumbnail_url})
+        return jsonify({"success": True, "filename": filename, "thumbnail_url": thumbnail_url})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/download-file/<path:filename>')
-def download_file(filename):
-    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
-    if not os.path.exists(os.path.join(DOWNLOAD_FOLDER, filename)):
-        return send_file(file_path, as_attachment=True)
-
-    # Force the browser to download the file instead of opening it
-    return send_file(
-        file_path,
-        as_attachment=True,
-        download_name=filename,
-        mimetype="application/octet-stream"  # Generic MIME type to force download
-    )
 
 @app.route('/get-video-info', methods=['POST'])
 def get_video_info():
@@ -156,38 +142,29 @@ def get_video_info():
     if not video_url:
         return jsonify({"error": "No URL provided"}), 400
 
-    # Validate and clean the URL before passing to yt-dlp
-    video_url = video_url.strip()  # Remove leading/trailing spaces
-
-    if not video_url.startswith("http"):
-        return jsonify({"error": "Invalid URL format"}), 400
-
     try:
-        ydl_opts = {
-            "quiet": True,
-            "format": "bestaudio/best",
-            "noplaylist": True,
-            "cookies_from_browser": ("chrome",)  # Ensure authentication works
-        }
-
+        ydl_opts = {"quiet": True}
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             thumbnail_url = info.get("thumbnail", "")
             formats = info.get("formats", [])
-
-            quality_options = [
-                f"{f.get('height')}p" for f in formats if f.get("vcodec") != "none"
-            ]
+            
+            # Extract available video quality options
+            quality_options = []
+            for f in formats:
+                if f.get("vcodec") != "none":  # Ignore audio-only formats
+                    quality_options.append(f"{f.get('height')}p")
 
             return jsonify({
                 "thumbnail_url": thumbnail_url,
-                "qualities": list(set(quality_options))
+                "qualities": list(set(quality_options))  # Remove duplicates
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
+
 
 # from flask import Flask, request, jsonify, render_template, Response
 # import yt_dlp
