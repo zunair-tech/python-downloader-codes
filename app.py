@@ -76,51 +76,46 @@ def progress():
     return Response(event_stream(), mimetype="text/event-stream")
 
     
-@app.route('/download-file/<filename>')
-def download_file(filename):
-    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
-    return send_file(file_path, as_attachment=True)
+
     
 @app.route("/download", methods=["POST"])
 def download_video():
     data = request.json
     url = data.get("url")
+    quality = data.get("quality")
 
-    if not url:
-        return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
-
-    download_progress.update({
-        "progress": "0%",
-        "status": "Starting...",
-        "speed": "0 KB/s",
-        "eta": "N/A"
-    })
+    if not url or not quality:
+        return jsonify({"success": False, "error": "Invalid request: URL or Quality missing"}), 400
 
     ydl_opts = {
         "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
-        "progress_hooks": [progress_hook],
-        "quiet": False
+        "format": quality,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-
-            # Sanitize filename
             raw_title = info.get("title", "video")
             sanitized_title = yt_dlp.utils.sanitize_filename(raw_title)
             filename = f"{sanitized_title}.mp4"
             file_path = os.path.join(DOWNLOAD_FOLDER, filename)
 
-            print(f"File downloaded to: {file_path}")  # Debug print
-
             if os.path.exists(file_path):
-                return send_file(file_path, as_attachment=True, download_name=filename, mimetype="video/mp4")
+                return jsonify({"success": True, "file_url": f"/download-file/{filename}"})
             else:
                 return jsonify({"success": False, "error": "File not found"}), 500
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+@app.route("/download-file/<filename>")
+def download_file(filename):
+    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+    
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True, download_name=filename, mimetype="video/mp4")
+    
+    return "File not found", 404
 
 
 @app.route('/get-video-info', methods=['POST'])
