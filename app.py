@@ -229,6 +229,37 @@ def progress():
 
     return Response(event_stream(), mimetype="text/event-stream")
 
+@app.route("/get-video-info", methods=["POST"])
+def get_video_info():
+    """Fetches video metadata like title, thumbnail, and duration."""
+    data = request.json
+    url = data.get("url")
+
+    if not url:
+        return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
+
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "format": "best"
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            video_info = {
+                "title": info.get("title"),
+                "thumbnail": info.get("thumbnail"),
+                "duration": info.get("duration"),
+                "url": info.get("webpage_url"),
+                "ext": info.get("ext")
+            }
+            return jsonify({"success": True, "data": video_info})
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route("/download", methods=["POST"])
 def download_video():
     data = request.json
