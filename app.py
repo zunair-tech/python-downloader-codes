@@ -231,7 +231,7 @@ def progress():
 
 @app.route("/get-video-info", methods=["POST"])
 def get_video_info():
-    """Fetches video metadata like title, thumbnail, and duration."""
+    """Fetches video metadata like title, thumbnail, duration, and available formats."""
     data = request.json
     url = data.get("url")
 
@@ -241,23 +241,43 @@ def get_video_info():
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
-        "format": "best"
+        "format": "best",  # Fetch the best available format
+        "noplaylist": True,
+        "extract_flat": False  # Ensure full metadata extraction
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+
+            # Extracting all available formats (to allow user selection)
+            formats = [
+                {
+                    "format_id": f["format_id"],
+                    "ext": f["ext"],
+                    "resolution": f.get("resolution", "N/A"),
+                    "filesize": f.get("filesize", "Unknown"),
+                    "fps": f.get("fps", "N/A"),
+                    "video_codec": f.get("vcodec", "Unknown"),
+                    "audio_codec": f.get("acodec", "Unknown"),
+                }
+                for f in info.get("formats", [])
+                if f.get("vcodec") != "none"  # Ignore audio-only formats
+            ]
+
             video_info = {
                 "title": info.get("title"),
                 "thumbnail": info.get("thumbnail"),
                 "duration": info.get("duration"),
                 "url": info.get("webpage_url"),
-                "ext": info.get("ext")
+                "ext": info.get("ext"),
+                "formats": formats  # Include available formats
             }
             return jsonify({"success": True, "data": video_info})
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 @app.route("/download", methods=["POST"])
