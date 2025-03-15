@@ -183,6 +183,7 @@ import json
 import time
 import os
 from pathlib import Path
+from werkzeug.utils import safe_join
 
 app = Flask(__name__, template_folder="templates")
 
@@ -247,7 +248,6 @@ def download_file(filename):
 def download_video():
     data = request.json
     url = data.get("url")
-    format_option = data.get("format", "video")
 
     if not url:
         return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
@@ -260,7 +260,7 @@ def download_video():
     })
 
     ydl_opts = {
-        "outtmpl": f"{DOWNLOAD_FOLDER}/%(title)s.%(ext)s",
+        "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
         "quiet": True
     }
@@ -271,13 +271,14 @@ def download_video():
             filename = info.get("requested_downloads", [{}])[0].get("filename", None)
 
         if filename:
-            # Instead of returning a server download link, return a direct download response
-            return send_file(filename, as_attachment=True)
+            file_path = os.path.abspath(filename)  # Ensure it's an absolute path
+            return send_file(file_path, as_attachment=True, mimetype="video/mp4")
 
         return jsonify({"success": False, "error": "Download failed"}), 500
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 
