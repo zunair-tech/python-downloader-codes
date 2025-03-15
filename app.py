@@ -176,8 +176,7 @@
 #     app.run(debug=True, threaded=True)
 
 
-
-from flask import Flask, request, jsonify, render_template, url_for, redirect, session, Response, send_file
+from flask import Flask, request, jsonify, render_template, Response, send_file
 import yt_dlp
 import json
 import time
@@ -240,7 +239,9 @@ def progress():
 
 @app.route('/download-file/<filename>')
 def download_file(filename):
-    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+    file_path = safe_join(DOWNLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
     return send_file(file_path, as_attachment=True)
 
 
@@ -248,6 +249,7 @@ def download_file(filename):
 def download_video():
     data = request.json
     url = data.get("url")
+    format_option = data.get("format", "video")
 
     if not url:
         return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
@@ -259,11 +261,17 @@ def download_video():
         "eta": "N/A"
     })
 
+    # Set format based on user choice
     ydl_opts = {
         "outtmpl": os.path.join(DOWNLOAD_FOLDER, "%(title)s.%(ext)s"),
         "progress_hooks": [progress_hook],
         "quiet": True
     }
+
+    if format_option == "audio":
+        ydl_opts["format"] = "bestaudio"
+    else:
+        ydl_opts["format"] = "bestvideo+bestaudio/best"
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -280,8 +288,6 @@ def download_video():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-
-
 @app.route('/get-video-info', methods=['POST'])
 def get_video_info():
     data = request.get_json()
@@ -296,12 +302,12 @@ def get_video_info():
             info = ydl.extract_info(video_url, download=False)
             thumbnail_url = info.get("thumbnail", "")
             formats = info.get("formats", [])
-            
+
             quality_options = {f"{f.get('height')}p" for f in formats if f.get("vcodec") != "none"}
 
             return jsonify({
                 "thumbnail_url": thumbnail_url,
-                "qualities": list(quality_options)
+                "qualities": sorted(list(quality_options), reverse=True)  # Sort qualities in descending order
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
