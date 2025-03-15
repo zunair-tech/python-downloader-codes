@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, url_for, redirect, session, Response
+from flask import Flask, request, jsonify, render_template, url_for, redirect, session, Response, send_file
 import yt_dlp
 import json
 import time
@@ -6,8 +6,6 @@ import os
 from pathlib import Path
 
 app = Flask(__name__, template_folder="templates")
-# DOWNLOAD_FOLDER = "downloads"
-# os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
 
 # Get the default Downloads folder for the current user
 if os.name == 'nt':  # Windows OS
@@ -16,7 +14,6 @@ else:  # For Unix-like systems (Linux/macOS), you can adjust the path accordingl
     DOWNLOAD_FOLDER = str(Path.home() / 'Downloads')
 # Make sure the folder exists (Windows downloads folder should already exist)
 os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
-
 
 download_progress = {"progress": "0%", "speed": "0 KB/s", "eta": "N/A", "status": "Waiting"}
 
@@ -66,7 +63,6 @@ def twitter():
 @app.route("/tiktok")
 def tiktok():
     return render_template("tiktok.html")
-
 
 @app.route("/progress")
 def progress():
@@ -135,37 +131,10 @@ def download_video():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-
-# @app.route('/get-video-info', methods=['POST'])
-# def get_video_info():
-#     data = request.get_json()
-#     video_url = data.get("url")
-
-#     if not video_url:
-#         return jsonify({"error": "No URL provided"}), 400
-
-#     try:
-#         ydl_opts = {
-#             "quiet": True,
-#             "cookiefile": "/root/cookies.txt"
-#         }
-#         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-#             info = ydl.extract_info(video_url, download=False)
-#             thumbnail_url = info.get("thumbnail", "")
-#             formats = info.get("formats", [])
-            
-#             # Extract available video quality options
-#             quality_options = []
-#             for f in formats:
-#                 if f.get("vcodec") != "none":  # Ignore audio-only formats
-#                     quality_options.append(f"{f.get('height')}p")
-
-#             return jsonify({
-#                 "thumbnail_url": thumbnail_url,
-#                 "qualities": list(set(quality_options))  # Remove duplicates
-#             })
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+@app.route('/download-file/<path:filename>')
+def download_file(filename):
+    file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+    return send_file(file_path, as_attachment=True)
 
 @app.route('/get-video-info', methods=['POST'])
 def get_video_info():
@@ -205,10 +174,8 @@ def get_video_info():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    
 if __name__ == "__main__":
     app.run(debug=True, threaded=True)
-
 
 # from flask import Flask, request, jsonify, render_template, Response
 # import yt_dlp
