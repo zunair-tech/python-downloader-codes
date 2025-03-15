@@ -267,41 +267,18 @@ def download_video():
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            available_formats = {fmt["height"] for fmt in info.get("formats", []) if fmt.get("height")}
-            thumbnail_url = info.get("thumbnail", None)
-
-        format_map = {
-            "4k": (2160, "bestvideo[height=2160]+bestaudio/best"),
-            "2k": (1440, "bestvideo[height=1440]+bestaudio/best"),
-            "1080p": (1080, "bestvideo[height=1080]+bestaudio/best"),
-            "720p": (720, "bestvideo[height=720]+bestaudio/best"),
-            "480p": (480, "bestvideo[height=480]+bestaudio/best"),
-            "video": (None, "bestvideo+bestaudio/best"),
-            "audio": (None, "bestaudio")
-        }
-
-        if format_option in format_map:
-            res, fmt = format_map[format_option]
-            if res and res not in available_formats:
-                return jsonify({"success": False, "error": f"{format_option} resolution is not available"}), 400
-            ydl_opts["format"] = fmt
-
-        if format_option == "audio":
-            ydl_opts["postprocessors"] = [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}]
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            filename = info_dict.get("requested_downloads", [{}])[0].get("filename", None)
+            info = ydl.extract_info(url, download=True)
+            filename = info.get("requested_downloads", [{}])[0].get("filename", None)
 
         if filename:
-            download_url = url_for('download_file', filename=os.path.basename(filename), _external=True)
-            return jsonify({"success": True, "download_url": download_url, "thumbnail_url": thumbnail_url})
-        else:
-            return jsonify({"success": False, "error": "Download failed"}), 500
+            # Instead of returning a server download link, return a direct download response
+            return send_file(filename, as_attachment=True)
+
+        return jsonify({"success": False, "error": "Download failed"}), 500
 
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
 
 
 @app.route('/get-video-info', methods=['POST'])
