@@ -3,6 +3,7 @@ import yt_dlp
 import json
 import time
 import os
+import yt_dlp.utils
 from pathlib import Path
 
 app = Flask(__name__, template_folder="templates")
@@ -84,7 +85,6 @@ def download_file(filename):
 def download_video():
     data = request.json
     url = data.get("url")
-    format_option = data.get("format", "video")
 
     if not url:
         return jsonify({"success": False, "error": "Invalid request: URL missing"}), 400
@@ -105,12 +105,13 @@ def download_video():
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            filename = info.get("requested_downloads", [{}])[0].get("filename", None)
 
-            if not filename:
-                filename = f"{info.get('title', 'video')}.mp4"
-
+            # Sanitize filename
+            raw_title = info.get("title", "video")
+            sanitized_title = yt_dlp.utils.sanitize_filename(raw_title)
+            filename = f"{sanitized_title}.mp4"
             file_path = os.path.join(DOWNLOAD_FOLDER, filename)
+
             print(f"File downloaded to: {file_path}")  # Debug print
 
             if os.path.exists(file_path):
