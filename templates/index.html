@@ -297,12 +297,20 @@ i {
                 contentType: 'application/json',
                 data: JSON.stringify({ "url": url, "quality": quality }),
                 success: function(response) {
-                    if (response.success) {
-                        Swal.fire('Success', 'Video downloaded successfully!', 'success');
-                    } else {
-                        Swal.fire('Error', response.error, 'error');
-                    }
-                },
+    if (response.success) {
+        Swal.fire({
+            title: "Download Ready",
+            text: "Click OK to download the video",
+            icon: "success",
+            confirmButtonText: "Download"
+        }).then(() => {
+            window.location.href = response.file_url; // Redirect to download file
+        });
+    } else {
+        Swal.fire('Error', response.error, 'error');
+    }
+},
+
                 error: function() {
                     Swal.fire('Error', 'An error occurred while downloading the video.', 'error');
                 }
